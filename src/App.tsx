@@ -1,8 +1,8 @@
 import { Link, Route, Routes } from "react-router-dom";
-import Dashboard from "./Pages/Dashboard";
-import Employees from "./Pages/Employees";
-import LeaveRequests from "./Pages/LeaveRequests";
-import Reports from "./Pages/Reports";
+import Dashboard from "./Pages/Dashboard.tsx";
+import Employees from "./Pages/Employees.tsx";
+import LeaveRequests from "./Pages/LeaveRequests.tsx";
+import Reports from "./Pages/Reports.tsx";
 import "./App.css";
 
 function App() {
