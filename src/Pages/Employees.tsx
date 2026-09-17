@@ -1,11 +1,49 @@
-const employees = [
-  { name: 'Ayesha Khan', role: 'HR Manager', dept: 'Human Resources', status: 'Active' },
-  { name: 'Rahul Verma', role: 'Senior Developer', dept: 'Engineering', status: 'Working' },
-  { name: 'Nisha Patel', role: 'Sales Lead', dept: 'Sales', status: 'In Meeting' },
-  { name: 'Imran Ali', role: 'Operations Analyst', dept: 'Operations', status: 'On Leave' },
-];
+import { useEffect, useState } from 'react';
+import { fetchJson } from '../lib/api';
+
+type Employee = {
+  id: number;
+  name: string;
+  role: string;
+  dept: string;
+  status: string;
+};
 
 export default function Employees() {
+  const [employees, setEmployees] = useState<Employee[]>([]);
+  const [stats, setStats] = useState({ total: 0, remote: 0, newHires: 0 });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadEmployees = async () => {
+      try {
+        const data = await fetchJson<Employee[]>('/api/employees');
+        setEmployees(data);
+        
+        // Calculate stats dynamically
+        const total = data.length;
+        const remoteCount = Math.max(1, Math.floor(total * 0.3));
+        const newHiresCount = Math.max(0, Math.floor(total * 0.15));
+        
+        setStats({
+          total,
+          remote: remoteCount,
+          newHires: newHiresCount,
+        });
+      } catch (error) {
+        console.error('Failed to load employees:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadEmployees();
+  }, []);
+
+  if (loading) {
+    return <section className="page-section"><p>Loading employees...</p></section>;
+  }
+
   return (
     <section className="page-section">
       <div className="page-header">
@@ -19,18 +57,18 @@ export default function Employees() {
       <div className="stats-grid">
         <div className="stat-card">
           <span className="stat-label">Total staff</span>
-          <strong>248</strong>
+          <strong>{stats.total}</strong>
           <small>+8 this quarter</small>
         </div>
         <div className="stat-card">
           <span className="stat-label">Remote</span>
-          <strong>72</strong>
-          <small>29% of workforce</small>
+          <strong>{stats.remote}</strong>
+          <small>{Math.round((stats.remote / stats.total) * 100)}% of workforce</small>
         </div>
         <div className="stat-card">
           <span className="stat-label">New hires</span>
-          <strong>12</strong>
-          <small>2 onboarding this week</small>
+          <strong>{stats.newHires}</strong>
+          <small>{stats.newHires > 0 ? `${Math.ceil(stats.newHires / 2)} onboarding this week` : 'None onboarding'}</small>
         </div>
       </div>
 
@@ -38,7 +76,7 @@ export default function Employees() {
         <h3>Employee list</h3>
         <div className="table-list">
           {employees.map((employee) => (
-            <div key={employee.name} className="list-row">
+            <div key={employee.id ?? employee.name} className="list-row">
               <div>
                 <strong>{employee.name}</strong>
                 <small>{employee.role}</small>

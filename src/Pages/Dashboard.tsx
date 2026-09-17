@@ -1,18 +1,50 @@
-const stats = [
-  { label: 'Total Employees', value: '248', change: '+12 this month' },
-  { label: 'On Leave Today', value: '18', change: '4 urgent' },
-  { label: 'Pending Requests', value: '14', change: '8 awaiting review' },
-  { label: 'Attendance', value: '94%', change: '+2.4% vs last week' },
-];
+import { useEffect, useState } from 'react';
+import { fetchJson } from '../lib/api';
 
-const activity = [
-  'New onboarding for 5 employees started',
-  'Marketing team attendance improved this week',
-  '3 leave requests need manager approval',
-  'Monthly salary cycle scheduled for Friday',
-];
+type DashboardStats = {
+  label: string;
+  value: string;
+  change: string;
+};
+
+type TeamAvailability = {
+  department: string;
+  percentage: number;
+};
+
+type DashboardResponse = {
+  stats: DashboardStats[];
+  activity: string[];
+  teamAvailability: TeamAvailability[];
+};
 
 export default function Dashboard() {
+  const [stats, setStats] = useState<DashboardStats[]>([]);
+  const [activity, setActivity] = useState<string[]>([]);
+  const [teamAvailability, setTeamAvailability] = useState<TeamAvailability[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadDashboard = async () => {
+      try {
+        const data = await fetchJson<DashboardResponse>('/api/dashboard');
+        setStats(data.stats);
+        setActivity(data.activity);
+        setTeamAvailability(data.teamAvailability || []);
+      } catch (error) {
+        console.error('Failed to load dashboard data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadDashboard();
+  }, []);
+
+  if (loading) {
+    return <section className="page-section"><p>Loading dashboard...</p></section>;
+  }
+
   return (
     <section className="page-section">
       <div className="page-header">
@@ -45,21 +77,17 @@ export default function Dashboard() {
 
         <div className="panel">
           <h3>Team availability</h3>
-          <div className="mini-metric">
-            <span>HR</span>
-            <div className="progress"><i style={{ width: '86%' }} /></div>
-            <b>86%</b>
-          </div>
-          <div className="mini-metric">
-            <span>Engineering</span>
-            <div className="progress"><i style={{ width: '92%' }} /></div>
-            <b>92%</b>
-          </div>
-          <div className="mini-metric">
-            <span>Support</span>
-            <div className="progress"><i style={{ width: '79%' }} /></div>
-            <b>79%</b>
-          </div>
+          {teamAvailability.length > 0 ? (
+            teamAvailability.map((team) => (
+              <div key={team.department} className="mini-metric">
+                <span>{team.department}</span>
+                <div className="progress"><i style={{ width: `${team.percentage}%` }} /></div>
+                <b>{team.percentage}%</b>
+              </div>
+            ))
+          ) : (
+            <p>No team data available.</p>
+          )}
         </div>
       </div>
     </section>

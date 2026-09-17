@@ -1,11 +1,41 @@
-const requests = [
-  { employee: 'Aisha Noor', type: 'Annual Leave', dates: '12 Sep - 15 Sep', status: 'Pending' },
-  { employee: 'Harsh Jain', type: 'Sick Leave', dates: '09 Sep - 10 Sep', status: 'Approved' },
-  { employee: 'Meera Das', type: 'Parental Leave', dates: '20 Sep - 30 Sep', status: 'Review' },
-  { employee: 'Omar Siddiqui', type: 'Personal Leave', dates: '14 Sep - 14 Sep', status: 'Rejected' },
-];
+import { useEffect, useState } from 'react';
+import { fetchJson } from '../lib/api';
+
+type LeaveRequest = {
+  id: number;
+  employee: string;
+  type: string;
+  dates: string;
+  status: string;
+};
 
 export default function LeaveRequests() {
+  const [requests, setRequests] = useState<LeaveRequest[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadLeaveRequests = async () => {
+      try {
+        const data = await fetchJson<LeaveRequest[]>('/api/leave-requests');
+        setRequests(data);
+      } catch (error) {
+        console.error('Failed to load leave requests:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadLeaveRequests();
+  }, []);
+
+  const pendingCount = requests.filter((request) => request.status === 'Pending').length;
+  const approvedCount = requests.filter((request) => request.status === 'Approved').length;
+  const utilization = requests.length ? Math.min(100, Math.round((approvedCount / requests.length) * 100)) : 0;
+
+  if (loading) {
+    return <section className="page-section"><p>Loading leave requests...</p></section>;
+  }
+
   return (
     <section className="page-section">
       <div className="page-header">
@@ -19,18 +49,18 @@ export default function LeaveRequests() {
       <div className="stats-grid">
         <div className="stat-card">
           <span className="stat-label">Pending</span>
-          <strong>14</strong>
+          <strong>{pendingCount}</strong>
           <small>Needs approval</small>
         </div>
         <div className="stat-card">
           <span className="stat-label">Approved</span>
-          <strong>26</strong>
+          <strong>{approvedCount}</strong>
           <small>This month</small>
         </div>
         <div className="stat-card">
           <span className="stat-label">Utilized</span>
-          <strong>78%</strong>
-          <small>Annual quota</small>
+          <strong>{utilization}%</strong>
+          <small>Based on approvals</small>
         </div>
       </div>
 
@@ -38,7 +68,7 @@ export default function LeaveRequests() {
         <h3>Latest requests</h3>
         <div className="table-list">
           {requests.map((request) => (
-            <div key={`${request.employee}-${request.dates}`} className="list-row">
+            <div key={`${request.id ?? request.employee}-${request.dates}`} className="list-row">
               <div>
                 <strong>{request.employee}</strong>
                 <small>{request.type}</small>

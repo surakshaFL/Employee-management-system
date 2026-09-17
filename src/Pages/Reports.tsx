@@ -1,10 +1,55 @@
-const reports = [
-  { title: 'Attendance Summary', value: '94.2%', detail: 'Across all departments' },
-  { title: 'Open Issues', value: '09', detail: 'Flagged for review' },
-  { title: 'Payroll Status', value: 'On track', detail: 'Next cycle Friday' },
-];
+import { useEffect, useState } from 'react';
+import { fetchJson } from '../lib/api';
+
+type ReportCard = {
+  title: string;
+  value: string;
+  detail: string;
+};
+
+type DepartmentPerformance = {
+  department: string;
+  value: string;
+};
+
+type ScheduledExport = {
+  item: string;
+  date: string;
+};
+
+type ReportsResponse = {
+  reports: ReportCard[];
+  departmentPerformance: DepartmentPerformance[];
+  scheduledExports: ScheduledExport[];
+};
 
 export default function Reports() {
+  const [reports, setReports] = useState<ReportCard[]>([]);
+  const [departmentPerformance, setDepartmentPerformance] = useState<DepartmentPerformance[]>([]);
+  const [scheduledExports, setScheduledExports] = useState<ScheduledExport[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadReports = async () => {
+      try {
+        const data = await fetchJson<ReportsResponse>('/api/reports');
+        setReports(data.reports);
+        setDepartmentPerformance(data.departmentPerformance);
+        setScheduledExports(data.scheduledExports);
+      } catch (error) {
+        console.error('Failed to load reports:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadReports();
+  }, []);
+
+  if (loading) {
+    return <section className="page-section"><p>Loading reports...</p></section>;
+  }
+
   return (
     <section className="page-section">
       <div className="page-header">
@@ -29,18 +74,18 @@ export default function Reports() {
         <div className="panel">
           <h3>Department performance</h3>
           <ul className="list">
-            <li>Engineering: 96% productivity</li>
-            <li>Sales: 88% target achievement</li>
-            <li>Support: 91% SLA compliance</li>
+            {departmentPerformance.map((item) => (
+              <li key={item.department}>{item.department}: {item.value}</li>
+            ))}
           </ul>
         </div>
 
         <div className="panel">
           <h3>Scheduled exports</h3>
           <ul className="list">
-            <li>Monthly payroll report — 15 Sep</li>
-            <li>Employee attendance — 18 Sep</li>
-            <li>Leave balance summary — 22 Sep</li>
+            {scheduledExports.map((item) => (
+              <li key={`${item.item}-${item.date}`}>{item.item} — {item.date}</li>
+            ))}
           </ul>
         </div>
       </div>
