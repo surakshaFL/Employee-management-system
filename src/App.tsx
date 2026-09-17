@@ -1,4 +1,4 @@
-import { Link, Route, Routes } from "react-router-dom";
+import { NavLink, Route, Routes } from "react-router-dom";
 import Dashboard from "./Pages/Dashboard.tsx";
 import Employees from "./Pages/Employees.tsx";
 import LeaveRequests from "./Pages/LeaveRequests.tsx";
@@ -9,14 +9,24 @@ function App() {
   return (
     <>
       <header className="app-header">
-        <nav>
-          <ul className="nav-list">
-            <li><Link to="/">Dashboard</Link></li>
-            <li><Link to="/employees">Employees</Link></li>
-            <li><Link to="/leave-requests">Leave Requests</Link></li>
-            <li><Link to="/reports">Reports</Link></li>
-          </ul>
-        </nav>
+        <div className="header-inner">
+          <div className="brand-wrap">
+            <div className="brand-mark">HR</div>
+            <div>
+              <p className="brand-label">Employee Portal</p>
+              <h2>PeopleOps</h2>
+            </div>
+          </div>
+
+          <nav aria-label="Main navigation">
+            <ul className="nav-list">
+              <li><NavLink to="/" end>Dashboard</NavLink></li>
+              <li><NavLink to="/employees">Employees</NavLink></li>
+              <li><NavLink to="/leave-requests">Leave Requests</NavLink></li>
+              <li><NavLink to="/reports">Reports</NavLink></li>
+            </ul>
+          </nav>
+        </div>
       </header>
       <main>
         <Routes>
