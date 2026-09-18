@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { fetchJson } from '../lib/api';
+import LeaveRequestForm from './LeaveRequestForm';
 
 type LeaveRequest = {
   id: number;
@@ -12,25 +13,32 @@ type LeaveRequest = {
 export default function LeaveRequests() {
   const [requests, setRequests] = useState<LeaveRequest[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isFormOpen, setIsFormOpen] = useState(false);
+
+  const loadLeaveRequests = async () => {
+    try {
+      const data = await fetchJson<LeaveRequest[]>('/api/leave-requests');
+      setRequests(data);
+    } catch (error) {
+      console.error('Failed to load leave requests:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const loadLeaveRequests = async () => {
-      try {
-        const data = await fetchJson<LeaveRequest[]>('/api/leave-requests');
-        setRequests(data);
-      } catch (error) {
-        console.error('Failed to load leave requests:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     loadLeaveRequests();
   }, []);
 
   const pendingCount = requests.filter((request) => request.status === 'Pending').length;
   const approvedCount = requests.filter((request) => request.status === 'Approved').length;
   const utilization = requests.length ? Math.min(100, Math.round((approvedCount / requests.length) * 100)) : 0;
+
+  const handleFormSuccess = (newRequest: LeaveRequest) => {
+    setRequests((previous) => [newRequest, ...previous]);
+    setIsFormOpen(false);
+    loadLeaveRequests();
+  };
 
   if (loading) {
     return <section className="page-section"><p>Loading leave requests...</p></section>;
@@ -43,8 +51,15 @@ export default function LeaveRequests() {
           <p className="eyebrow">HR workflow</p>
           <h1>Leave Requests</h1>
         </div>
-        <button className="primary-btn">New request</button>
+        <button className="primary-btn" onClick={() => setIsFormOpen((open) => !open)}>New request</button>
       </div>
+
+      {isFormOpen && (
+        <LeaveRequestForm
+          onCancel={() => setIsFormOpen(false)}
+          onSuccess={handleFormSuccess}
+        />
+      )}
 
       <div className="stats-grid">
         <div className="stat-card">

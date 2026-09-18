@@ -41,6 +41,26 @@ export default function Dashboard() {
     loadDashboard();
   }, []);
 
+  const handleExportReport = () => {
+    const payload = {
+      exportedAt: new Date().toISOString(),
+      stats,
+      activity,
+      teamAvailability,
+    };
+
+    const blob = new Blob([JSON.stringify(payload, null, 2)], {
+      type: 'application/json',
+    });
+
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'dashboard-report.json';
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
   if (loading) {
     return <section className="page-section"><p>Loading dashboard...</p></section>;
   }
@@ -52,7 +72,7 @@ export default function Dashboard() {
           <p className="eyebrow">Overview</p>
           <h1>Dashboard</h1>
         </div>
-        <button className="primary-btn">Export report</button>
+        <button className="primary-btn" onClick={handleExportReport}>Export report</button>
       </div>
 
       <div className="stats-grid">

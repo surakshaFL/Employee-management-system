@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { fetchJson } from '../lib/api';
+import EmployeeForm from './EmployeeForm';
 
 type Employee = {
   id: number;
@@ -13,32 +14,43 @@ export default function Employees() {
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [stats, setStats] = useState({ total: 0, remote: 0, newHires: 0 });
   const [loading, setLoading] = useState(true);
+  const [isFormOpen, setIsFormOpen] = useState(false);
+
+  const loadEmployees = async () => {
+    try {
+      const data = await fetchJson<Employee[]>('/api/employees');
+      setEmployees(data);
+
+      const total = data.length;
+      const remoteCount = Math.max(1, Math.floor(total * 0.3));
+      const newHiresCount = Math.max(0, Math.floor(total * 0.15));
+
+      setStats({
+        total,
+        remote: remoteCount,
+        newHires: newHiresCount,
+      });
+    } catch (error) {
+      console.error('Failed to load employees:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const loadEmployees = async () => {
-      try {
-        const data = await fetchJson<Employee[]>('/api/employees');
-        setEmployees(data);
-        
-        // Calculate stats dynamically
-        const total = data.length;
-        const remoteCount = Math.max(1, Math.floor(total * 0.3));
-        const newHiresCount = Math.max(0, Math.floor(total * 0.15));
-        
-        setStats({
-          total,
-          remote: remoteCount,
-          newHires: newHiresCount,
-        });
-      } catch (error) {
-        console.error('Failed to load employees:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     loadEmployees();
   }, []);
+
+  const handleFormSuccess = (newEmployee: Employee) => {
+    setEmployees((previous) => [newEmployee, ...previous]);
+    setStats((current) => ({
+      total: current.total + 1,
+      remote: Math.max(1, Math.floor((current.total + 1) * 0.3)),
+      newHires: Math.max(0, Math.floor((current.total + 1) * 0.15)),
+    }));
+    setIsFormOpen(false);
+    loadEmployees();
+  };
 
   if (loading) {
     return <section className="page-section"><p>Loading employees...</p></section>;
@@ -51,8 +63,15 @@ export default function Employees() {
           <p className="eyebrow">Directory</p>
           <h1>Employees</h1>
         </div>
-        <button className="primary-btn">Add employee</button>
+        <button className="primary-btn" onClick={() => setIsFormOpen((open) => !open)}>Add employee</button>
       </div>
+
+      {isFormOpen && (
+        <EmployeeForm 
+          onCancel={() => setIsFormOpen(false)}
+          onSuccess={handleFormSuccess}
+        />
+      )}
 
       <div className="stats-grid">
         <div className="stat-card">

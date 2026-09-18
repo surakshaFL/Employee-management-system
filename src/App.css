@@ -1,8 +1,10 @@
 #root {
+  /* width: 1126px; */
   width: 100%;
   max-width: 100%;
-  margin: 0;
+  margin: 0 auto;
   text-align: left;
+  border-inline: 1px solid #e2e8f0;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -18,9 +20,7 @@ body {
 }
 
 main {
-  width: min(1200px, calc(100% - 32px));
-  margin: 0 auto;
-  padding: 24px 0 48px;
+  width: 100%;
 }
 
 .app-header {
@@ -347,14 +347,81 @@ main {
   color: #0f172a;
 }
 
-.primary-btn {
+.primary-btn,
+.secondary-btn {
   border: none;
   border-radius: 10px;
-  background: #2563eb;
-  color: white;
   padding: 10px 16px;
   font-weight: 600;
+  font-size: 0.95rem;
   cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.primary-btn {
+  background: #2563eb;
+  color: #ffffff;
+  box-shadow: 0 10px 20px rgba(37, 99, 235, 0.2);
+}
+
+.secondary-btn {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+.primary-btn:hover,
+.secondary-btn:hover {
+  transform: translateY(-1px);
+}
+
+.mini-form-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 18px;
+  margin-bottom: 22px;
+  box-shadow: 0 10px 22px rgba(15, 23, 42, 0.04);
+}
+
+.mini-form-card h3 {
+  margin: 0 0 14px;
+  font-size: 1.1rem;
+}
+
+.mini-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.mini-form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.mini-form input,
+.mini-form select {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 0.95rem;
+  background: #f8fafc;
+  color: #0f172a;
+}
+
+.mini-form input:focus,
+.mini-form select:focus {
+  outline: 2px solid rgba(37, 99, 235, 0.18);
+  border-color: #60a5fa;
+}
+
+.mini-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
 }
 
 .stats-grid {
