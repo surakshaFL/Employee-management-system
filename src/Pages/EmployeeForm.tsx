@@ -50,6 +50,10 @@ export default function EmployeeForm({ onCancel, onSuccess }: EmployeeFormProps)
       });
 
       onSuccess(newEmployee);
+      // notify dashboard to refresh
+      try {
+        window.dispatchEvent(new CustomEvent('dashboard:update'));
+      } catch {}
       setFormData(defaultForm);
     } catch (error) {
       console.error('Failed to create employee:', error);

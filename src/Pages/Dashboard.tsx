@@ -24,21 +24,33 @@ export default function Dashboard() {
   const [teamAvailability, setTeamAvailability] = useState<TeamAvailability[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const loadDashboard = async () => {
+    try {
+      const data = await fetchJson<DashboardResponse>('/api/dashboard');
+      setStats(data.stats);
+      setActivity(data.activity);
+      setTeamAvailability(data.teamAvailability || []);
+    } catch (error) {
+      console.error('Failed to load dashboard data:', error);
+    }
+  };
+
   useEffect(() => {
-    const loadDashboard = async () => {
-      try {
-        const data = await fetchJson<DashboardResponse>('/api/dashboard');
-        setStats(data.stats);
-        setActivity(data.activity);
-        setTeamAvailability(data.teamAvailability || []);
-      } catch (error) {
-        console.error('Failed to load dashboard data:', error);
-      } finally {
-        setLoading(false);
-      }
+    const initialLoad = async () => {
+      await loadDashboard();
+      setLoading(false);
     };
 
-    loadDashboard();
+    initialLoad();
+
+    // Refresh when other parts of the app dispatch a dashboard update event
+    const onDashboardUpdate = () => {
+      loadDashboard();
+    };
+
+    window.addEventListener('dashboard:update', onDashboardUpdate);
+
+    return () => window.removeEventListener('dashboard:update', onDashboardUpdate);
   }, []);
 
   const handleExportReport = () => {

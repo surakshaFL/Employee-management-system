@@ -50,6 +50,10 @@ export default function LeaveRequestForm({ onCancel, onSuccess }: Props) {
       });
 
       onSuccess(newRequest);
+      // notify dashboard to refresh
+      try {
+        window.dispatchEvent(new CustomEvent('dashboard:update'));
+      } catch {}
       setFormData(defaultForm);
     } catch (error) {
       console.error('Failed to create leave request:', error);
